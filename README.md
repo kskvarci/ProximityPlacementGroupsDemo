@@ -19,7 +19,7 @@ I've also included example latencies from my own [testing](#Testing) to give you
 
 ### Prerequisites
 - The scripts in this repo were built / tested on Linux (Ubuntu to be specific).
-- Make sure that you have the Azure CLI installed and authenticated.
+- Make sure that you have the Azure CLI installed and authenticated. Also make sure you have the right subscription selected.
 - You'll need permissions to create and manage network and VM resources.
 
 ### Setting up your Parameters
@@ -79,6 +79,6 @@ After deployment you should be able to SSH into each test VM.
 
 From there it should be simple to download, build and install sockperf on each machine.
 
-Test latency between whatever machines you wish to test. In my case I started sockperf up as a receiver on VM6 and ran tests from all other VMs in the environment. You can see those latencies shown in the diagram above.
+Test latency between whatever machines you wish to test. In my case I started sockperf up as a receiver on VM6 and ran tests from all other VMs in the environment. You can see those latencies shown in the [diagram above](#Step-by-Step).
 
 Have fun!
