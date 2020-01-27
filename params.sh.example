@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Example config file. Rename to params.sh.
+
+# Resource group for all test resources
+resourceGroupName="ProximityPlacement-Rg"
+# Location for resource group. Will not effect resource locations
+rgLocation="eastus2"
+
+# Virtual Network names and locations
+vnet1Name="vnetRegion1"
+vnet1Location="eastus2"
+vnet2Name="vnetRegion2"
+vnet2Location="centralus"
+
+# Source IP or block from which you will connect via SSH to test machines
+sourceIp="xxx.xxx.xxx.xxx/32"
+
+# Test VM names
+vm1Name="vm1"
+vm2Name="vm2"
+vm3Name="vm3"
+vm4Name="vm4"
+vm5Name="vm5"
+vm6Name="vm6"
+
+# Test VMs size.
+# Please note that this must be a size that supports accelerated networking
+vmSize="Standard_D3_v2"
+
+# SSH information
+userName="your-username"
+sshKey="your-ssh-public-key"

@@ -1,0 +1,210 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vNet1Name": {
+            "type":"string",
+            "defaultValue": "vNet1",
+            "metadata": {
+                "description": "Name for vNet 1"
+            }
+        },
+        "vNet1Location": {
+            "type":"string",
+            "defaultValue": "eastus2",
+            "metadata": {
+                "description": "Location vNet 1"
+            }
+        },
+        "vNet2Name": {
+            "type": "string",
+            "defaultValue": "vNet2",
+            "metadata": {
+                "description": "Name for vNet 2"
+            }
+        },
+        "vNet2Location": {
+            "type":"string",
+            "defaultValue": "centralus",
+            "metadata": {
+                "description": "Location vNet 2"
+            }
+        },
+        "sourceIp": {
+            "type":"string",
+            "metadata": {
+                "description": "IP of client machine for NSG rules"
+            }
+        }
+    },
+    "variables": {
+        "vNet1": {
+            "addressSpacePrefix": "10.0.0.0/24",
+            "subnetName": "subnet1",
+            "subnetPrefix": "10.0.0.0/24"
+        },
+        "vNet2": {
+            "addressSpacePrefix": "192.168.0.0/24",
+            "subnetName": "subnet1",
+            "subnetPrefix": "192.168.0.0/24"
+        },
+        "vNet1tovNet2PeeringName": "[concat(parameters('vNet1Name'), '-', parameters('vNet2Name'))]",
+        "vNet2tovNet1PeeringName": "[concat(parameters('vNet2Name'), '-', parameters('vNet1Name'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2016-03-30",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('vNet1Name')]",
+            "location": "[parameters('vNet1Location')]",
+            "comments": "This is the first vNet",
+            "dependsOn": [
+                       "[concat('Microsoft.Network/networkSecurityGroups/', concat(parameters('vNet1Name'),'-nsg'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('vNet1').addressSpacePrefix]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vNet1').subnetName]",
+                        "properties": {
+                            "addressPrefix": "[variables('vNet1').subnetPrefix]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups/', concat(parameters('vNet1Name'),'-nsg'))]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "resources": [
+               {
+                   "apiVersion": "2016-06-01",
+                   "type": "virtualNetworkPeerings",
+                   "name": "[variables('vNet1tovNet2PeeringName')]",
+                   "location": "[parameters('vNet2Location')]",
+                   "dependsOn": [
+                       "[concat('Microsoft.Network/virtualNetworks/', parameters('vNet1Name'))]",
+                       "[concat('Microsoft.Network/virtualNetworks/', parameters('vNet2Name'))]"
+                   ],
+                   "comments": "This is the peering from vNet 1 to vNet 2",
+                   "properties": {
+                       "allowVirtualNetworkAccess": "true",
+                       "allowForwardedTraffic": "false",
+                       "allowGatewayTransit": "false",
+                       "useRemoteGateways": "false",
+                       "remoteVirtualNetwork": {
+                           "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vNet2Name'))]"
+                       }
+                   }
+               }
+            ]
+        },
+        {
+            "apiVersion": "2016-03-30",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('vNet2Name')]",
+            "location": "[parameters('vNet2Location')]",
+            "comments": "This is the second vNet",
+            "dependsOn": [
+                       "[concat('Microsoft.Network/networkSecurityGroups/', concat(parameters('vNet2Name'),'-nsg'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('vNet2').addressSpacePrefix]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vNet2').subnetName]",
+                        "properties": {
+                            "addressPrefix": "[variables('vNet2').subnetPrefix]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups/', concat(parameters('vNet2Name'),'-nsg'))]"
+                            }
+                        }
+                    }
+                ]
+            },
+             "resources": [
+               {
+                   "apiVersion": "2016-06-01",
+                   "type": "virtualNetworkPeerings",
+                   "name": "[variables('vNet2tovNet1PeeringName')]",
+                   "location": "[resourceGroup().location]",
+                   "dependsOn": [
+                       "[concat('Microsoft.Network/virtualNetworks/', parameters('vNet1Name'))]",
+                       "[concat('Microsoft.Network/virtualNetworks/', parameters('vNet2Name'))]"
+                   ],
+                   "comments": "This is the peering from vNet 2 to vNet 1",
+                   "properties": {
+                       "allowVirtualNetworkAccess": "true",
+                       "allowForwardedTraffic": "false",
+                       "allowGatewayTransit": "false",
+                       "useRemoteGateways": "false",
+                       "remoteVirtualNetwork": {
+                           "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vNet1Name'))]"
+                       }
+                   }
+               }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[concat(parameters('vNet1Name'),'-nsg')]",
+            "location": "[parameters('vNet1Location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "Allow_SSH",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "[parameters('sourceIp')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+         {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[concat(parameters('vNet2Name'),'-nsg')]",
+            "location": "[parameters('vNet2Location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "Allow_SSH",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "[parameters('sourceIp')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
