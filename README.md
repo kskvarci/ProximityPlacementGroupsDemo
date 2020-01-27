@@ -15,7 +15,7 @@ The diagram below shows the final deployed solution when all scripts have succes
 I've also included example latencies from my own testing to give you a feel for the magnitude of latency differences for different configurations. I was seeing around .1 ms for VMs within the proximity group. That's pretty quick!
 
 ## Step by Step
-![alt text](images/Diag.png "Network Latencies")
+![alt text](Images/Diag.png "Network Latencies")
 
 ### Pre-Requisites
 - The scripts in this repo were built / tested on Linux (Ubuntu to be specific).
